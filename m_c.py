@@ -86,7 +86,9 @@ def lex_fiter(arg_input={}):
 def l(arg_input={}):
 	lex_fiter(arg_input)
 
-
+def find_wiki_match(arg_input={}):
+	args = defaultor(arg_input,default_match)
+	max.find_wiki_match(args,classifier)
 
 def find_match(arg_input={}):
 	args = defaultor(arg_input,default_match)

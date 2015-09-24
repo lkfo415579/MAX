@@ -186,9 +186,9 @@ import sys
 import unicodedata
 
 
-def append_features(corpus, tag, q, long, pid):
-	print '\r###Appending features Tag : %5s' % tag + '#####PID : %2d' % (pid) + '###########           \r'
-
+def append_features(corpus, tag, q, long, pid,info):
+	if not info:
+		print '\r###Appending features Tag : %5s' % tag + '#####PID : %2d' % (pid) + '###########           \r'
 	run = 0
 	len_all = len(corpus)
 	featuresets = []
@@ -205,7 +205,9 @@ def append_features(corpus, tag, q, long, pid):
 		run = run + 1
 		featuresets.append([gender_features(zh, en), tag])
 	q.put(featuresets)
-	print '\r###End of features Tag : %5s' % tag + '#####PID : %2d' % (pid) + '###########              \r'
+	
+	if not info:
+		print '\r###End of features Tag : %5s' % tag + '#####PID : %2d' % (pid) + '###########              \r'
 
 
 def split_list(alist, wanted_parts=1):
@@ -214,7 +216,7 @@ def split_list(alist, wanted_parts=1):
 			for i in range(wanted_parts)]
 
 
-def muti_feat_adder(cores=2, c_l=[]):
+def muti_feat_adder(cores=2, c_l=[],info=False):
 	featuresets = []
 	import multiprocessing
 	from multiprocessing import Process, Queue
@@ -224,7 +226,8 @@ def muti_feat_adder(cores=2, c_l=[]):
 		return
 
 	#if __name__ == '__main__':
-	print '###Mutiprocessing cores = ' + str(cores) + '###'
+	if not info:
+		print '###Mutiprocessing cores = ' + str(cores) + '###'
 	long = 0
 	##
 	q_list = []
@@ -249,7 +252,7 @@ def muti_feat_adder(cores=2, c_l=[]):
 		q_list.append(tmp_q)
 		####
 		tmp_p = multiprocessing.Process(target=append_features, args=(
-			corpus_list[x - 1][0], corpus_list[x - 1][1], tmp_q, long, x))
+			corpus_list[x - 1][0], corpus_list[x - 1][1], tmp_q, long, x,info))
 		long += 20
 		if long > 20:
 			# print '#######'
@@ -427,7 +430,7 @@ def find_wrong(args,classifier):
 		my_dict = []
 		my_dict = prepare_lexical(my_dict,args['lex_table'])
 	
-	f_all = muti_feat_adder(n_cores, n_c_l)
+	f_all = muti_feat_adder(n_cores, n_c_l,False)
 	#corpus_wrong = read_corpus(en_dir_2,zh_dir_2,'WRONG')
 	#corpus_wrong= shuffle_corpus(corpus_wrong)
 	##
@@ -548,14 +551,14 @@ def sort_corpus(corpus):
 	return corpus
 	
 	
-def print_corpus(corpus):
+def print_corpus(corpus,postfix):
 	full_name_zh = 'debug/hikari_zh'
 	full_name_en = 'debug/hikari_en'
 	f_zh = open(full_name_zh, 'w')
 	f_en = open(full_name_en, 'w')
 	for node in corpus:
-		f_zh.write(' '.join(map(str, node[1])))
-		f_en.write(' '.join(map(str, node[0])))
+		f_zh.write(' '.join(map(str, node[1])) + postfix)
+		f_en.write(' '.join(map(str, node[0])) + postfix)
 	f_en.close()
 	f_zh.close()
 	
@@ -575,7 +578,7 @@ def find_match(args,classifier):
 		corpus_ok = sort_corpus(corpus_ok);
 	
 	#for debug use only
-	print_corpus(corpus_ok)
+	print_corpus(corpus_ok,'')
 	#####
 	print '###Generating Windowsize corpus###'
 	
@@ -641,7 +644,7 @@ def find_match(args,classifier):
 		my_dict = []
 		my_dict = prepare_lexical(my_dict,args['lex_table'])
 	
-	f_all = muti_feat_adder(n_cores, n_c_l)
+	f_all = muti_feat_adder(n_cores, n_c_l,False)
 	##
 	#'delete all tager'
 	test_ctb = f_all  # all
@@ -876,7 +879,225 @@ def prepare_fset(args):
 	return [featuresets,train,test,parameters]
 #if __name__ == "__main__":
 	#main()
+	
 
+def find_single_match(corpus,args,f,classifier):
+
+	##
+	###
+	print_corpus(corpus,'\n')
+	print '###Generating Windowsize corpus###'
+	corpus_size = len(corpus)
+	
+	original_index = corpus
+	
+	real_corpus = []
+
+	#num_output_blankspace
+	num_blank = 0
+	#num_output_blankspace
+	
+	for index in range(0,corpus_size):
+		if corpus[index][1][0] == '[blankspace]':
+			num_blank += 1
+		for x in range(0,corpus_size):
+			real_corpus.append([corpus[index][0],corpus[x][1]])
+	
+
+	
+	
+	#
+	
+	print '###Generating featuresets ctb###'
+	#input corpus
+	n_c_l = [[real_corpus, "OK"]]
+	#
+	n_cores = int(args['cores'])
+	
+	
+	
+	##lexical model
+	global my_dict
+	try:
+		if my_dict is None:
+			tmp_void = True
+	except NameError:
+		my_dict = []
+		my_dict = prepare_lexical(my_dict,args['lex_table'])
+	###
+	f_all = muti_feat_adder(n_cores, n_c_l,True)
+	test_ctb = f_all
+	print 'Accuracy(one to one) : ',
+	print nltk.classify.accuracy(classifier, test_ctb)*100,
+	print '%'
+	############
+	
+	num_match = 0
+	ok_rate = float(args['ok_rate'])
+	f_size = len(f_all)
+	print '####Starting search the highest OK lines####'
+	run = 0
+	
+	
+	###############################################################
+	#create wish_list,
+	try:
+		wish_list.clear()
+	except UnboundLocalError:
+		wish_list = dict()
+	
+	
+	now_index = 0
+	for index in range(0, f_size):
+		if index % corpus_size == 0:
+			if wish_list:
+				# finish searching retrieve the highest matched line
+				try:
+					h_index = max(wish_list.iterkeys(), key=(lambda k: wish_list[k][0]))
+				except:
+					break
+				
+				if args['sort']:
+					zh_line = (h_index % corpus_size) - num_blank
+					en_line = now_index
+				else:
+					zh_line = (h_index % corpus_size)
+					en_line = now_index - 1
+					
+				f.write('OK : ' + "{0:.3f}%".format(wish_list[h_index][0]*100) + '\n')
+				f.write('WRONG : ' + "{0:.3f}%".format((1-wish_list[h_index][0])*100) + '\n')
+				f.write('Line(zh) : ' + str(zh_line) + '\n')
+				f.write('Line(en) : ' + str(en_line) + '\n')
+				f.write('Zh : '+ ' '.join(map(str, real_corpus[h_index][1])) + '\n')
+				f.write('En : '+ ' '.join(map(str, real_corpus[h_index][0])) + '\n')
+				f.write('--------------\n')
+				num_match += 1
+				wish_list.clear()
+			#
+			now_index += 1
+		else:
+			#print f_all[index]
+			pdist = classifier.prob_classify(f_all[index][0])
+			ok = float(pdist.prob('OK'))
+			wrong = float(pdist.prob('WRONG'))
+			if ok >= ok_rate:
+				wish_list.update({index: [ok]})
+
+	print 'Amount of match : ' + str(num_match) +'\n--------------\n'
+	f.write('Amount of match : ' + str(num_match)+'\n--------------\n')
+	
+	global total_match
+	total_match += num_match
+	
+
+	
+def RE_search(file_name):
+	import re, mmap
+	phrase = '<doc.*?>([\S\s]+?)</doc>'
+
+	with open(file_name, 'r+') as f:
+		data = mmap.mmap(f.fileno(), 0)
+		mo = re.findall(phrase, data)
+		
+		if mo:
+			#content = mo.group()
+			content = mo
+	try:
+		return content
+	except:
+		return False
+	#search all pages in one single doc
+
+def read_corpus_str(str_en,str_zh):
+
+	str_en = str_en.splitlines()
+	str_zh = str_zh.splitlines()
+	
+	
+	len_p_en = len(str_en)
+	len_p_zh = len(str_zh)
+
+	print 'Eng lines(%d)' % len_p_en
+	print 'Zh lines(%d)' % len_p_zh
+	
+	if len_p_en < len_p_zh:
+		len_p = len_p_zh
+	else:
+		len_p = len_p_en
+	
+	
+	corpus = []
+	for x in range(0, len_p):
+		en_words = []
+		zh_words = []
+		if x < len_p_en:
+			en_words = str_en[x].split(" ")
+		else:
+			en_words = ["[blankspace]"]
+		if x < len_p_zh:
+			zh_words = str_zh[x].split(" ")
+		else:
+			zh_words = ["[blankspace]"]
+		corpus.append([en_words, zh_words])
+	return corpus
+	#corpus[...,...]<-largest_corpus etc..(['\n','This is a ball'])
+	
+def process_xml_corpus(en_dir, zh_dir,args,full_name,classifier):
+	
+	sort = args['sort']
+	f = open(full_name, 'wa')
+
+	docs_en = RE_search(en_dir)
+	docs_zh = RE_search(zh_dir)
+	l_docs = len(docs_zh)
+	
+	print 'Total wiki pages : %d ' % l_docs
+	
+	doc_id = 0
+	
+	global total_match
+	total_match = 0
+	
+	for x in range(0,l_docs):
+		corpus_ok = read_corpus_str(docs_en[x],docs_zh[x])
+		#print corpus_ok
+		if sort:
+			corpus_ok = sort_corpus(corpus_ok);
+		find_single_match(corpus_ok,args,f,classifier)
+		
+		#
+		doc_id += 1
+		print '------------------'
+		print 'DocID:%d' % doc_id
+		print '@@@@Finished Reading a Doc@@@@'
+		print '------------------'
+		f.write('------------------')
+		f.write('DocID:%d' % doc_id)
+		f.write('------------------\n')
+	
+	print 'Total of match : ' + str(total_match) +'\n--------------\n'
+	f.write('Total of match : ' + str(total_match)+'\n--------------\n')
+	
+	f.close()
+	
+	
+	
+def find_wiki_match(args,classifier):
+	start_time = time.time()
+	print '####Function find_match####'
+	zh_dir = args['zh_dir']
+	en_dir = args['en_dir']
+	full_name = args['output']
+	print '####OutputFile='+full_name+'####'
+	
+	###
+	
+	process_xml_corpus(en_dir,zh_dir,args,full_name,classifier)
+
+	
+	print("---Total Used : %s Seconds ---" % (time.time() - start_time))
+	
+	
 '''
 ClassifierI supports the following operations:
   - self.classify(featureset)
