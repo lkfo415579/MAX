@@ -1,6 +1,7 @@
 python nAlinger.py
+python wiki_Alinger.py
 ------------------
 python
 execfile('m_c.py')
 ----------------
-written by revo , 8/8/2015 8:16PM
+written by revo , 24/9/2015 1:42PM
