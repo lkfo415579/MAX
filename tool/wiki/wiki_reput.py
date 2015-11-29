@@ -22,13 +22,27 @@ def pre_corpus(zh_f,tmp_f):
 		data = file.readlines()
 
 	print len(data)
-	for x in range(0,len(tmp)):
+	'''
+	for x in range(0,len(tmp),2):
 		line_num = int(tmp[x][0]) - 1
 		#print line_num
 		line_content = tmp[x][1]
 		data.insert(line_num, line_content) 
 		#data[line_num] = line_content
-
+	'''
+	for y in range(0,len(data)):
+		#print data[y]
+		if data[y][:7] == '$$$$$$$' or data[y][:5] == '@@@@@':
+			#print 'ok %s ' % data[y]
+			
+			#print data[0][:7]
+			#print data[1][:5]
+			#if y == 0:
+			#	print data[y]
+			#	print data[y+1]
+			line_content = tmp.pop(0)[1]
+			data[y] = line_content
+			
 # and write everything back
 	with open(out_n_zh, 'w') as file:
 		file.writelines( data )

@@ -993,7 +993,7 @@ def find_single_match(corpus,args,f,classifier):
 	
 def RE_search(file_name):
 	import re, mmap
-	phrase = '<doc.*?>([\S\s]+?)</doc>'
+	phrase = '<doc.*?">([\S\s]+?)<\/doc>'
 
 	with open(file_name, 'r+') as f:
 		data = mmap.mmap(f.fileno(), 0)
@@ -1049,7 +1049,7 @@ def process_xml_corpus(en_dir, zh_dir,args,full_name,classifier):
 
 	docs_en = RE_search(en_dir)
 	docs_zh = RE_search(zh_dir)
-	l_docs = len(docs_zh)
+	l_docs = len(docs_zh) - 1
 	
 	print 'Total wiki pages : %d ' % l_docs
 	
@@ -1059,7 +1059,10 @@ def process_xml_corpus(en_dir, zh_dir,args,full_name,classifier):
 	total_match = 0
 	
 	for x in range(0,l_docs):
-		corpus_ok = read_corpus_str(docs_en[x],docs_zh[x])
+		try:
+			corpus_ok = read_corpus_str(docs_en[x],docs_zh[x])
+		except:
+			pass
 		#print corpus_ok
 		if sort:
 			corpus_ok = sort_corpus(corpus_ok);

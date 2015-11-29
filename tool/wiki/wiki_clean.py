@@ -9,7 +9,8 @@ def pre_corpus(zh_f,lan):
 	#len_p = number_file(file)
 	front = zh_f[:-3]
 	last = zh_f[-3:]
-	out_n_zh = front +'.clean' + last
+	#out_n_zh = front +'.clean' + last
+	out_n_zh = zh_f +'.clean'
 	
 	rm_list = []
 	
