@@ -1,8 +1,10 @@
+#12/15/2015 4:48
+#Update:25/7/2015.18:04
 import m_c
 from optparse import OptionParser, SUPPRESS_HELP , OptionGroup
 #4:03...
 def main():
-	usage = "Usage: %prog [-h] [-r|-t|-l] [[sub_options] arg]"+"\n\nUpdate:25/7/2015.18:04"
+	usage = "Usage: %prog [-h] [-r|-t|-l] [[sub_options] arg]"+"\n\nUpdate:7/6/2016.17:31"
 	parser = OptionParser(usage,add_help_option=False)
 	parser.add_option("-h", "--help", action="help",help="Display Help Menu Again.")
 	
@@ -35,6 +37,8 @@ def main():
 	group2.add_option("--tc",dest="cores",default=12,type="int", help="The amount of cores.[default: %default]")
 	group2.add_option("--tf",dest="outputfile",default="error/2000.test", help="Outputfile(ok,mid,wrong) ,total 3 files.[default: %default]")
 	group2.add_option("--te",dest="testset",default=0.07,type="float", help="The percentage of testset size.[default: %default]")
+	group2.add_option("--ts_text",dest="sourcefile_t_origin",default="", help="unprocess of sourcefile name.[default: %default]")
+	group2.add_option("--tt_text",dest="targetfile_t_origin",default="", help="unprocess of targetfile name.[default: %default]")
 	parser.add_option_group(group2)
 
 	group4 = OptionGroup(parser, "Load-Test-Match Options")
@@ -50,6 +54,8 @@ def main():
 	group4.add_option("--mc",dest="cores",default=12,type="int", help="The amount of cores.[default: %default]")
 	group4.add_option("--mo",dest="outputfile_m",default="match/1000.test.match", help="Outputfile name.[default: %default]")
 	group4.add_option("--m_sort",dest="m_sort",default=True, action="store_false",help="Disable sort the original file.[default: %default]")
+	group4.add_option("--ms_text",dest="sourcefile_t_origin",default="", help="unprocess of sourcefile name.[default: %default]")
+	group4.add_option("--mt_text",dest="targetfile_t_origin",default="", help="unprocess of targetfile name.[default: %default]")
 	parser.add_option_group(group4)
 	
 	group3 = OptionGroup(parser, "Lexfilter Options")
@@ -60,6 +66,7 @@ def main():
 	group3.add_option("--lh",dest="threshold",default=0.01,type="float", help="Filter Word's Pro is less than.[default: %default]")
 	group3.add_option("--lt",dest="top",default=False, action="store_true",help="Enable Filter Top 10 Words.[default: %default]")
 	group3.add_option("--ls",dest="symbol",default=True, action="store_false",help="Disable filter symbol.[default: %default]")
+	group3.add_option("--lc",dest="chinese",default=True, action="store_false",help="Disable filter chinese.[default: %default]")
 	parser.add_option_group(group3)
 	
 	(options, args) = parser.parse_args()
@@ -101,7 +108,7 @@ def main():
 		m_c.load(pre_args)
 		find_args = {'zh_dir':options.sourcefile_t,'en_dir':options.targetfile_t,
 		'wrong_rate':options.wrong_rate_t,'ok_rate':options.ok_rate_t,'cores':options.cores,'output':options.outputfile,'lex_table':options.lexical
-		,'len_test_sets':options.testset}
+		,'len_test_sets':options.testset,'targetfile_t_origin':options.targetfile_t_origin,'sourcefile_t_origin':options.sourcefile_t_origin}
 		#omg i will change it later
 		m_c.find_wrong(find_args)
 	elif options.match:
@@ -109,11 +116,11 @@ def main():
 		m_c.load(pre_args)
 		match_args = {'zh_dir':options.sourcefile_m,'en_dir':options.targetfile_m,
 		'ok_rate':options.ok_rate,'cores':options.cores,'output':options.outputfile_m,'lex_table':options.lexical
-		,'win_size':options.win_size,'sort':options.m_sort}
+		,'win_size':options.win_size,'sort':options.m_sort,'targetfile_t_origin':options.targetfile_t_origin,'sourcefile_t_origin':options.sourcefile_t_origin}
 		#omg i will change it later
 		m_c.find_match(match_args)
 	elif options.lex:
-		lex_args =  {'filename':options.ori_lex,'less_than':options.threshold,'order':options.order,'top':options.top,'symbol':options.symbol}
+		lex_args =  {'filename':options.ori_lex,'less_than':options.threshold,'order':options.order,'top':options.top,'symbol':options.symbol,'chinese':options.chinese}
 		m_c.l(lex_args)
 
 if __name__ == "__main__":

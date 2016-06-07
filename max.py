@@ -1,5 +1,5 @@
 # encoding=utf-8
-
+#11/5/2015 4:48
 import nltk
 nltk.usage(nltk.classify.ClassifierI)
 ###
@@ -417,6 +417,17 @@ def find_wrong(args,classifier):
 
 	corpus_ok = read_corpus(en_dir_2, zh_dir_2, 'OK')
 	n_c_l = [[corpus_ok, "OK"]]
+	
+	if args['targetfile_t_origin'] != "":
+		try:
+			ori_corpus = read_corpus(args['targetfile_t_origin'],args['sourcefile_t_origin'],"original")
+		except:
+			ori_corpus = corpus_ok
+	else:
+		ori_corpus = corpus_ok
+	
+	
+	
 	print '###Generating featuresets ctb###'
 	
 	n_cores = int(args['cores'])
@@ -486,24 +497,24 @@ def find_wrong(args,classifier):
 			f_tu.write('OK : ' + "{0:.3f}%".format(ok*100) + '\n')
 			f_tu.write('WRONG : ' + "{0:.3f}%".format(wrong*100) + '\n')
 			f_tu.write('Line : ' + str(index+1) + '\n')
-			f_tu.write('Zh : '+ ' '.join(map(str, corpus_ok[index][1])))
-			f_tu.write('En : '+ ' '.join(map(str, corpus_ok[index][0])))
+			f_tu.write('Zh : '+ ' '.join(map(str, ori_corpus[index][1])))
+			f_tu.write('En : '+ ' '.join(map(str, ori_corpus[index][0])))
 			f_tu.write('--------------\n')
 			num_wrong += 1
 		if ok >= ok_rate:
 			f_ta.write('OK : ' + "{0:.3f}%".format(ok*100) + '\n')
 			f_ta.write('WRONG : ' + "{0:.3f}%".format(wrong*100) + '\n')
 			f_ta.write('Line : ' + str(index+1) + '\n')
-			f_ta.write('Zh : '+ ' '.join(map(str, corpus_ok[index][1])))
-			f_ta.write('En : '+ ' '.join(map(str, corpus_ok[index][0])))
+			f_ta.write('Zh : '+ ' '.join(map(str, ori_corpus[index][1])))
+			f_ta.write('En : '+ ' '.join(map(str, ori_corpus[index][0])))
 			f_ta.write('--------------\n')
 			num_ok += 1
 		if wrong < wrong_rate and ok < ok_rate:
 			f_tm.write('OK : ' + "{0:.3f}%".format(ok*100) + '\n')
 			f_tm.write('WRONG : ' + "{0:.3f}%".format(wrong*100) + '\n')
 			f_tm.write('Line : ' + str(index+1) + '\n')
-			f_tm.write('Zh : '+ ' '.join(map(str, corpus_ok[index][1])))
-			f_tm.write('En : '+ ' '.join(map(str, corpus_ok[index][0])))
+			f_tm.write('Zh : '+ ' '.join(map(str, ori_corpus[index][1])))
+			f_tm.write('En : '+ ' '.join(map(str, ori_corpus[index][0])))
 			f_tm.write('--------------\n')
 			num_mid += 1
 			
@@ -620,6 +631,15 @@ def find_match(args,classifier):
 		#print info_space
 		tmp_info = 0
 		#debug
+	
+	#generate print corpus for display original corpus
+	if args['targetfile_t_origin'] != "":
+		try:
+			ori_corpus = read_corpus(args['targetfile_t_origin'],args['sourcefile_t_origin'],"original")
+		except:
+			ori_corpus = real_corpus
+	else:
+		ori_corpus = real_corpus
 	
 	
 	n_c_l = [[real_corpus, "OK"]]
@@ -893,9 +913,16 @@ def find_single_match(corpus,args,f,classifier):
 	
 	real_corpus = []
 
-	#num_output_blankspace
 	num_blank = 0
-	#num_output_blankspace
+	
+	#reading original source,target files
+	if args['targetfile_t_origin'] != "":
+		try:
+			ori_corpus = read_corpus(args['targetfile_t_origin'],args['sourcefile_t_origin'],"original")
+		except:
+			ori_corpus = real_corpus
+	else:
+		ori_corpus = real_corpus
 	
 	for index in range(0,corpus_size):
 		if corpus[index][1][0] == '[blankspace]':
@@ -968,8 +995,8 @@ def find_single_match(corpus,args,f,classifier):
 				f.write('WRONG : ' + "{0:.3f}%".format((1-wish_list[h_index][0])*100) + '\n')
 				f.write('Line(zh) : ' + str(zh_line) + '\n')
 				f.write('Line(en) : ' + str(en_line) + '\n')
-				f.write('Zh : '+ ' '.join(map(str, real_corpus[h_index][1])) + '\n')
-				f.write('En : '+ ' '.join(map(str, real_corpus[h_index][0])) + '\n')
+				f.write('Zh : '+ ' '.join(map(str, ori_corpus[h_index][1])) + '\n')
+				f.write('En : '+ ' '.join(map(str, ori_corpus[h_index][0])) + '\n')
 				f.write('--------------\n')
 				num_match += 1
 				wish_list.clear()

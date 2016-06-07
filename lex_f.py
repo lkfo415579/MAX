@@ -9,6 +9,7 @@ def lex_f_main(args):
 	less_than = args['less_than']
 	order = args['order']
 	symbol = args['symbol']
+	chinese = args['chinese']
 	#########
 	#lex_dir = 'zh-en/'+lex_f
 	lex_dir = lex_f
@@ -65,12 +66,12 @@ def lex_f_main(args):
 					key = False
 					reason = 'Symbol'
 				if order == 'e2f':
-					if check_chinese(name):
+					if chinese and check_chinese(name):
 						#check english line contain chinese
 						key = False
 						reason = 'ZH_e2f'
 				elif order == 'f2e':
-					if check_chinese(name):
+					if chinese and check_chinese(name):
 						#check english line contain chinese
 						key = False
 						reason = 'ZH_f2e'

@@ -32,7 +32,7 @@ def pre_corpus(zh_f,tmp_f):
 	'''
 	for y in range(0,len(data)):
 		#print data[y]
-		if data[y][:7] == '$$$$$$$' or data[y][:5] == '@@@@@':
+		if data[y][:7] == '$$$$$$$' or data[y][:7] == '@@@@@@@':
 			#print 'ok %s ' % data[y]
 			
 			#print data[0][:7]
